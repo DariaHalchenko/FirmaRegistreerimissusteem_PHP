@@ -41,6 +41,7 @@ if(isset($_POST['submit'])){
 <head>
     <meta charset="UTF-8">
     <title>Lisa töötaja</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
@@ -53,24 +54,29 @@ if(isset($_POST['submit'])){
         <li><a href="lisamine.php">Lisa uus töötaja</a></li>
     </ul>
 </nav>
+<div class="lisamine">
 <h2>Uue töötaja lisamine</h2>
-<?php if(isset($teade)) echo $teade; ?>
-<form action="" method="post">
-    <label>Nimi:</label>
-    <input type="text" name="nimi" required>
-    <label>Isikukood:</label>
-    <input type="text" name="isikukood" required>
-    <label>Tunnitasu:</label>
-    <input type="text" name="tunnitasu" required>
-    <label>Amet:</label>
-    <input type="text" name="amet" required>
-    <label>Kuupäev:</label>
-    <input type="date" name="kuupaev" required>
-    <label>Sissepääs:</label>
-    <input type="time" name="sissenemine" required>
-    <label>Väljapääs:</label>
-    <input type="time" name="valjumine" required>
-    <input type="submit" name="submit" value="Lisa töötaja">
-</form>
+    <?php if(isset($teade)) echo $teade; ?>
+    <form action="" method="post">
+        <label>Nimi:</label>
+        <input type="text" name="nimi" required>
+        <label>Isikukood:</label>
+        <input type="text" name="isikukood" required>
+        <label>Tunnitasu:</label>
+        <input type="text" name="tunnitasu" required>
+        <label>Amet:</label>
+        <input type="text" name="amet" required>
+        <label>Kuupäev:</label>
+        <input type="date" name="kuupaev" required>
+        <label>Sissepääs:</label>
+        <input type="time" name="sissenemine" required>
+        <label>Väljapääs:</label>
+        <input type="time" name="valjumine" required>
+        <input type="submit" name="submit" value="Lisa töötaja">
+    </form>
+</div>
+<footer>
+    <p>Daria Halchenko &copy 2025</p>
+</footer>
 </body>
 </html>

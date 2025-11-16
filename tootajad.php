@@ -12,6 +12,7 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
 <head>
     <meta charset="UTF-8">
     <title>Firma töötajate registreerimissüsteem</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
@@ -45,6 +46,7 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
         <th>Kuupäev</th>
         <th>Sissepääs</th>
         <th>Väljapääs</th>
+        <th>Palk</th>
     </tr>
     <?php
     $leitud = false;
@@ -57,7 +59,7 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
         }
 
         foreach($igapaev as $paev):
-            $a = $paev["Aeg"]["@attributes"];
+            $aeg = $paev["Aeg"]["@attributes"];
 
             // Filter otsingu järgi
             $sobib_nimi = empty($otsi_nimi) || strpos(strtolower($r['nimi']), $otsi_nimi) !== false;
@@ -65,6 +67,13 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
             $sobib_amet = empty($otsi_amet) || strpos(strtolower($r['amet']), $otsi_amet) !== false;
             if(!$sobib_nimi || !$sobib_data || !$sobib_amet) continue;
             $leitud = true;
+            // Расчет зарплаты
+            list($h1,$m1) = explode(':',$aeg["sissenemine"]); // h1 - часы, m1 - минуты 
+            list($h2,$m2) = explode(':',$aeg["valjumine"]);
+            $tooaeg = (($h2*60+$m2)-($h1*60+$m1))/60;
+
+            $tunni_kaupa = floatval(str_replace(['€',','], ['','.'],$r['tunnitasu']));
+            $palk = round($tooaeg * $tunni_kaupa,2);
             ?>
             <tr>
                 <td><?= $r["nimi"] ?></td>
@@ -72,8 +81,9 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
                 <td><?= $r["amet"] ?></td>
                 <td><?= $r["tunnitasu"] ?></td>
                 <td><?= $paev["@attributes"]["kuupaev"] ?></td>
-                <td><?= $a["sissenemine"] ?></td>
-                <td><?= $a["valjumine"] ?></td>
+                <td><?= $aeg["sissenemine"] ?></td>
+                <td><?= $aeg["valjumine"] ?></td>
+                <td><?= $palk ?> €</td>
             </tr>
         <?php endforeach;
     endforeach; ?>
