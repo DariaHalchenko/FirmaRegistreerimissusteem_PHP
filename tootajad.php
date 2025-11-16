@@ -17,6 +17,13 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
 <header>
     <h1>Töötajate nimekiri</h1>
 </header>
+<!--navigeerimismenüü-->
+<nav class="menu">
+    <ul>
+        <li><a href="tootajad.php">Töötajate nimekiri</a></li>
+        <li><a href="lisamine.php">Lisa uus töötaja</a></li>
+    </ul>
+</nav>
 <!-- Andmete otsing -->
 <h2>Töötajate otsing</h2>
 <form method="get" action="">
