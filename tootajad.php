@@ -46,6 +46,7 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
         <th>Kuupäev</th>
         <th>Sissepääs</th>
         <th>Väljapääs</th>
+        <th>Tunnid</th>
         <th>Palk</th>
     </tr>
     <?php
@@ -67,8 +68,8 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
             $sobib_amet = empty($otsi_amet) || strpos(strtolower($r['amet']), $otsi_amet) !== false;
             if(!$sobib_nimi || !$sobib_data || !$sobib_amet) continue;
             $leitud = true;
-            // Расчет зарплаты
-            list($h1,$m1) = explode(':',$aeg["sissenemine"]); // h1 - часы, m1 - минуты 
+            // Palgaarvestus
+            list($h1,$m1) = explode(':',$aeg["sissenemine"]); // h1 - kell, m1 - minut 
             list($h2,$m2) = explode(':',$aeg["valjumine"]);
             $tooaeg = (($h2*60+$m2)-($h1*60+$m1))/60;
 
@@ -83,6 +84,7 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
                 <td><?= $paev["@attributes"]["kuupaev"] ?></td>
                 <td><?= $aeg["sissenemine"] ?></td>
                 <td><?= $aeg["valjumine"] ?></td>
+                <td><?= number_format($tooaeg, 2) ?></td>
                 <td><?= $palk ?> €</td>
             </tr>
         <?php endforeach;
