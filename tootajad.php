@@ -2,10 +2,10 @@
 $file = "tootajad.json";
 $data = json_decode(file_get_contents($file), true);
 
-// Andmete otsing
-$otsi_nimi = isset($_GET['otsi_nimi']) ? strtolower($_GET['otsi_nimi']) : '';
-$otsi_data = isset($_GET['otsi_data']) ? strtolower($_GET['otsi_data']) : '';
-$otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
+// Otsing ja sorteerimine
+$otsi = strtolower($_GET['otsi'] ?? '');
+$sorteerimine = $_GET['sort'] ?? '';
+$kuu  = $_GET['kuu'] ?? '';
 ?>
 <!DOCTYPE html>
 <html>
@@ -25,16 +25,20 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
         <li><a href="lisamine.php">Lisa uus töötaja</a></li>
     </ul>
 </nav>
-<!-- Andmete otsing -->
-<h2>Töötajate otsing</h2>
+<!--Otsing ja sorteerimine-->
+<h2>Otsing ja funktsioonid</h2>
 <form method="get" action="">
-    <label for="otsi_nimi">Otsi nimi:</label>
-    <input type="text" id="otsi_nimi" name="otsi_nimi" value="<?= htmlspecialchars($otsi_nimi) ?>">
-    <label for="otsi_data">Otsi kuupäeva järgi:</label>
-    <input type="text" id="otsi_data" name="otsi_data" value="<?= htmlspecialchars($otsi_data) ?>">
-    <label for="otsi_amet">Otsi ameti järgi:</label>
-    <input type="text" id="otsi_amet" name="otsi_amet" value="<?= htmlspecialchars($otsi_amet) ?>">
-    <input type="submit" value="Otsi">
+    <label for="otsi">Otsi (nimi, amet, kuupäev):</label>
+    <input type="text" id="otsi" name="otsi" value="<?= htmlspecialchars($otsi) ?>" oninput="this.form.submit()">
+    <label for="sorteerimine">Sorteeri:</label>
+    <select name="sort" onchange="this.form.submit()">
+        <option value="">—</option>
+        <option value="nimi" <?= $sorteerimine=='nimi'?'selected':'' ?>>Nimi</option>
+        <option value="palk" <?= $sorteerimine=='palk'?'selected':'' ?>>Palk</option>
+    </select>
+    <label for="kuu">Kuu:</label>
+    <input type="month" name="kuu" value="<?= htmlspecialchars($kuu) ?>" onchange="this.form.submit()">
+    <a href="tootajad.php" class="reset-btn">Tühista filtrid</a>
 </form>
 <!-- Tulemuste tabel -->
 <table>
@@ -50,54 +54,75 @@ $otsi_amet = isset($_GET['otsi_amet']) ? strtolower($_GET['otsi_amet']) : '';
         <th>Palk</th>
     </tr>
     <?php
-    $leitud = false;
-    $tootajad = isset($data["Tootaja"]) ? $data["Tootaja"] : [];
-    foreach($tootajad as $tootaja):
+    $tootajad = $data["Tootaja"] ?? [];
+    $ridu = [];
+    foreach ($tootajad as $tootaja) {
         $r = $tootaja["@attributes"];
         $igapaev = $tootaja["Igapaev"];
         if (isset($igapaev["@attributes"])) {
             $igapaev = [$igapaev];
         }
 
-        foreach($igapaev as $paev):
+        foreach ($igapaev as $paev) {
+            $paevKuu = $paev["@attributes"]["kuupaev"];
+            // Filtreerimine kuude järgi
+            if ($kuu !== "" && strpos($paevKuu, $kuu) !== 0) continue;
+
             $aeg = $paev["Aeg"]["@attributes"];
-
-            // Filter otsingu järgi
-            $sobib_nimi = empty($otsi_nimi) || strpos(strtolower($r['nimi']), $otsi_nimi) !== false;
-            $sobib_data = empty($otsi_data) || strpos(strtolower($paev['@attributes']['kuupaev']), $otsi_data) !== false;
-            $sobib_amet = empty($otsi_amet) || strpos(strtolower($r['amet']), $otsi_amet) !== false;
-            if(!$sobib_nimi || !$sobib_data || !$sobib_amet) continue;
-            $leitud = true;
             // Palgaarvestus
-            list($h1,$m1) = explode(':',$aeg["sissenemine"]); // h1 - kell, m1 - minut 
-            list($h2,$m2) = explode(':',$aeg["valjumine"]);
-            $tooaeg = (($h2*60+$m2)-($h1*60+$m1))/60;
+            list($h1,$m1) = explode(':', $aeg["sissenemine"]); // h1 - kell, m1 - minut
+            list($h2,$m2) = explode(':', $aeg["valjumine"]);
+            $tooaeg = (($h2*60+$m2) - ($h1*60+$m1)) / 60;
 
-            $tunni_kaupa = floatval(str_replace(['€',','], ['','.'],$r['tunnitasu']));
-            $palk = round($tooaeg * $tunni_kaupa,2);
-            ?>
-            <tr>
-                <td><?= $r["nimi"] ?></td>
-                <td><?= $r["isikukood"] ?></td>
-                <td><?= $r["amet"] ?></td>
-                <td><?= $r["tunnitasu"] ?></td>
-                <td><?= $paev["@attributes"]["kuupaev"] ?></td>
-                <td><?= $aeg["sissenemine"] ?></td>
-                <td><?= $aeg["valjumine"] ?></td>
-                <td><?= number_format($tooaeg, 2) ?></td>
-                <td><?= $palk ?> €</td>
-            </tr>
-        <?php endforeach;
-    endforeach; ?>
+            $tunni_kaupa  = floatval(str_replace(['€',','], ['','.'], $r['tunnitasu']));
+
+            $palk = round($tooaeg * $tunni_kaupa, 2);
+            // Filter otsingu järgi
+            $otsing_rida = strtolower($r["nimi"] . " " . $r["amet"] . " " . $paevKuu);
+            if ($otsi && !str_contains($otsing_rida, $otsi)) continue;
+            // Lisame massiivi stringid
+            $ridu[] = [
+                'nimi' => $r["nimi"],
+                'isikukood' => $r["isikukood"],
+                'amet' => $r["amet"],
+                'tunnitasu' => $r["tunnitasu"],
+                'kuupaev' => $paevKuu,
+                'sis' => $aeg["sissenemine"],
+                'val' => $aeg["valjumine"],
+                'tunnid' => $tooaeg,
+                'palk' => $palk
+            ];
+        }
+    }
+    // Sorteerimine tähestikulises järjekorras ja kasvavas järjekorras
+    if ($sorteerimine === "nimi") {
+        usort($ridu, fn($a,$b) => strcmp($a["nimi"], $b["nimi"]));
+    }
+    else if ($sorteerimine === "palk") {
+        usort($ridu, fn($a,$b) => $a["palk"] <=> $b["palk"]);
+    }
+    if (empty($ridu)) {
+        echo "<tr><td colspan='9' style='color:red;'>Tulemusi ei leitud.</td></tr>";
+    }
+    else {
+        foreach ($ridu as $r) {
+            echo "<tr>
+            <td>{$r['nimi']}</td>
+            <td>{$r['isikukood']}</td>
+            <td>{$r['amet']}</td>
+            <td>{$r['tunnitasu']}</td>
+            <td>{$r['kuupaev']}</td>
+            <td>{$r['sis']}</td>
+            <td>{$r['val']}</td>
+            <td>".number_format($r['tunnid'],2)."</td>
+            <td>{$r['palk']} €</td>
+        </tr>";
+        }
+    }
+    ?>
 </table>
-
-<?php
-if(!$leitud){
-    echo "<p style='color:red;'>Tulemusi ei leitud.</p>";
-}
-?>
 <footer>
-    <p>Daria Halchenko &copy; 2025</p>
+    <p>Daria Halchenko © 2025</p>
 </footer>
 </body>
 </html>

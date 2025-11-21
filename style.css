@@ -163,6 +163,16 @@ form input[type="submit"]:hover {
     background: linear-gradient(to right, #7b8dff, #5a6dff);
     transform: scale(1.05);
 }
+form select,
+form input[type="month"] {
+    padding: 6px 10px;
+    border: 2px solid #5a6dff;
+    border-radius: 6px;
+    background-color: #ffffff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
 @media(max-width: 700px) {
     .lisamine form {
         grid-template-columns: 1fr;
